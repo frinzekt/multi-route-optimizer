@@ -1,15 +1,28 @@
 import Head from "next/head";
 import App, { AppProps } from "next/app";
+import { Fragment, useState, useEffect } from "react";
 import { Container, Row, Col } from "reactstrap";
 
+import MapInterface from "../components/maps/MapInterface";
+import EntryForm from "../components/maps/EntryForm";
+
 export default function Home() {
+  const [optimizationParams, setOptimizationParams] = useState({});
+  const handleChangeOptimizationParams = (e) => {
+    e.preventDefault();
+    const { id, value } = e.target;
+    setOptimizationParams({ ...optimizationParams, [id]: value });
+  };
+  const handleSubmitOptimizationParams = () => {};
+
   return (
     <Container id="main">
-      <Container>
-        <Row>
-          <Col md="6">D</Col>
-          <Col md="6">D</Col>
-        </Row>
+      <Container fluid={true} id="mapContainer">
+        <MapInterface></MapInterface>
+        <EntryForm
+          handleChange={handleChangeOptimizationParams}
+          handleSubmitOptimizationParams={handleSubmitOptimizationParams}
+        ></EntryForm>
       </Container>
       <style jsx global>{`
         .container#main {
@@ -19,6 +32,10 @@ export default function Home() {
           flex-direction: column;
           justify-content: center;
           align-items: center;
+        }
+
+        #mapContainer {
+          min-height: 50vh;
         }
 
         footer {

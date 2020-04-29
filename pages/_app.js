@@ -7,11 +7,9 @@ import Navbar from "../components/Navbar";
 const _app = ({ Component, pageProps }) => {
   return (
     <Fragment>
-      <body>
-        <Navbar></Navbar>
-        <Component {...pageProps}></Component>
-        <Footer></Footer>
-      </body>
+      <Navbar></Navbar>
+      <Component {...pageProps}></Component>
+      <Footer></Footer>
     </Fragment>
   );
 };
