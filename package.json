@@ -1,0 +1,17 @@
+{
+  "name": "multi-route-optimizer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "bootstrap": "^4.4.1",
+    "next": "9.3.6",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "reactstrap": "^8.4.1"
+  }
+}
