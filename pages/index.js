@@ -8,20 +8,49 @@ import EntryForm from "../components/maps/EntryForm";
 
 export default function Home() {
   const [optimizationParams, setOptimizationParams] = useState({});
+  const [addresses, setAddresses] = useState([]);
+  const [coordinates, setCoordinates] = useState([]);
   const handleChangeOptimizationParams = (e) => {
     e.preventDefault();
-    const { id, value } = e.target;
+    let { id, value } = e.target;
+    if (id === "addresses") {
+      value = value.split("\n");
+    }
     setOptimizationParams({ ...optimizationParams, [id]: value });
   };
-  const handleSubmitOptimizationParams = () => {};
+  const handleSubmitOptimizationParams = async (e) => {
+    e.preventDefault();
+    console.log(optimizationParams);
+    const res = await (
+      await fetch("/api", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(optimizationParams),
+      })
+    ).json();
+    console.log(res);
+    setCoordinates(res.coordinates);
+    setAddresses(res.formattedAddresses);
+  };
 
   return (
     <Container id="main">
       <Container fluid={true} id="mapContainer">
-        <MapInterface></MapInterface>
+        {coordinates.length ? (
+          <MapInterface
+            coordinates={coordinates}
+            addresses={addresses}
+          ></MapInterface>
+        ) : (
+          <MapInterface></MapInterface>
+        )}
+
         <EntryForm
           handleChange={handleChangeOptimizationParams}
-          handleSubmitOptimizationParams={handleSubmitOptimizationParams}
+          handleSubmit={handleSubmitOptimizationParams}
         ></EntryForm>
       </Container>
       <style jsx global>{`
