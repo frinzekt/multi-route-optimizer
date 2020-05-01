@@ -1,7 +1,14 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import distance from "google-distance-matrix";
+import NodeGeoCoder from "node-geocoder";
+
 const googleMapsApiKey = process.env.GOOGLE_API_KEY;
-console.log(googleMapsApiKey);
+const geocoderOptions = {
+  provider: "google",
+  apiKey: googleMapsApiKey,
+};
+const geocoder = NodeGeoCoder(geocoderOptions);
+
 distance.key(googleMapsApiKey);
 const places = [
   "55.930,-3.118",
@@ -220,7 +227,7 @@ const responseData = {
   ],
   status: "OK",
 };
-export default (req, res) => {
+export default async (req, res) => {
   console.log(req.body);
   //   distance.matrix(places, places, (err, responseData) => {
   //     if (!err) console.log(err);
@@ -228,7 +235,25 @@ export default (req, res) => {
   //     res.statusCode = 200;
   //     res.json(responseData);
   //   });
-  res.statusCode = 200;
+
+  const geoCoding = async (addresses) => {
+    const res = await geocoder.batchGeocode(addresses);
+    return res;
+  };
+  const { addresses } = req.body;
+  const geoCodes = await geoCoding(addresses);
+
+  // PARSING THE COORDINATE PAIR
+  const coordinates = geoCodes.map((geoCode) => {
+    const { latitude, longitude } = geoCode.value[0];
+    return { latitude, longitude };
+  });
+  const formattedAddresses = geoCodes.map(
+    (geoCode) => geoCode.value[0].formattedAddress
+  );
+  const googlePlaceId = geoCodes.map(
+    (geoCode) => geoCode.value[0].extra.googlePlaceId
+  );
 
   // CONVERSION OF RESPONSE DATA TO ADJACENCY MATRIX
   // 2D Loop Origin x Destination Matrix
@@ -242,12 +267,13 @@ export default (req, res) => {
         },
       ];
     });
-    console.log(travelData);
     return travelData;
   });
+  res.statusCode = 200;
   res.json({
-    coordinates: places,
-    addresses: responseData.destination_addresses,
+    coordinates,
+    formattedAddresses,
+    googlePlaceId,
     matrix,
   });
 };
