@@ -14,7 +14,7 @@ export default function Home() {
     e.preventDefault();
     let { id, value } = e.target;
     if (id === "addresses") {
-      value = value.split("\n");
+      value = value.trim().split("\n");
     }
     setOptimizationParams({ ...optimizationParams, [id]: value });
   };
@@ -42,7 +42,7 @@ export default function Home() {
         {coordinates.length ? (
           <MapInterface
             coordinates={coordinates}
-            addresses={addresses}
+            addresses={optimizationParams.addresses}
           ></MapInterface>
         ) : (
           <MapInterface></MapInterface>
