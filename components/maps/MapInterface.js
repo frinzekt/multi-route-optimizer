@@ -6,6 +6,8 @@ import {
   InfoWindow,
 } from "@react-google-maps/api";
 
+import MapDirectionsRenderer from "./MapDirectionsRenderer";
+
 const googleMapsApiKey = process.env.GOOGLE_API_KEY;
 
 const calculateCenter = (array) => {
@@ -14,18 +16,10 @@ const calculateCenter = (array) => {
 };
 
 const MapInterface = ({
-  coordinates = [
-    { latitude: 55.93, longitude: -3.118 },
-    { latitude: 50.087, longitude: 14.421 },
-    { latitude: 51.482578, longitude: -0.007659 },
-    { latitude: 59.329323, longitude: 18.068581 },
-  ],
-  addresses = [
-    "6 Great Carleton Pl, Edinburgh EH16 4TX, UK",
-    "College Way, Greenwich, London SE10 9NN, UK",
-    "Gustav Adolfs torg 24, 111 52 Stockholm, Sweden",
-    "IDK",
-  ],
+  coordinates,
+  addresses,
+  directionsState,
+  setDirectionsState,
 }) => {
   // STATES
   const [dimension, setDimension] = useState({});
@@ -48,6 +42,8 @@ const MapInterface = ({
       });
     }
   }, []);
+
+  console.log(coordinates);
   return (
     <div>
       <LoadScript id="script-loader" googleMapsApiKey={googleMapsApiKey}>
@@ -67,7 +63,7 @@ const MapInterface = ({
             ), //115.8224726,
           }}
         >
-          {coordinates.map((coordinate, i) => {
+          {/* {coordinates.map((coordinate, i) => {
             return (
               <Fragment key={i}>
                 <Marker
@@ -90,7 +86,12 @@ const MapInterface = ({
                 )}
               </Fragment>
             );
-          })}
+          })} */}
+          <MapDirectionsRenderer
+            directionsState={directionsState}
+            setDirectionsState={setDirectionsState}
+            places={coordinates}
+          ></MapDirectionsRenderer>
         </GoogleMap>
       </LoadScript>
     </div>

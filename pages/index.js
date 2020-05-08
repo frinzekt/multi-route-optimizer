@@ -5,11 +5,19 @@ import { Container, Row, Col } from "reactstrap";
 
 import MapInterface from "../components/maps/MapInterface";
 import EntryForm from "../components/maps/EntryForm";
+import {
+  requestDistanceMatrix,
+  requestRouteOptimized,
+} from "../components/Request";
 
 export default function Home() {
   const [optimizationParams, setOptimizationParams] = useState({});
   const [addresses, setAddresses] = useState([]);
   const [coordinates, setCoordinates] = useState([]);
+  const [directionsState, setDirectionsState] = useState([]);
+  const [adjacencyMatrix, setAdjacencyMatrix] = useState([]);
+  const [routes, setRoutes] = useState([]);
+
   const handleChangeOptimizationParams = (e) => {
     e.preventDefault();
     let { id, value } = e.target;
@@ -21,19 +29,26 @@ export default function Home() {
   const handleSubmitOptimizationParams = async (e) => {
     e.preventDefault();
     console.log(optimizationParams);
-    const res = await (
-      await fetch("/api", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(optimizationParams),
-      })
-    ).json();
-    console.log(res);
-    setCoordinates(res.coordinates);
-    setAddresses(res.formattedAddresses);
+
+    // UPDATE GEOLOCATIONS AND DISTANCE MATRIX
+    const resDistanceMatrix = await requestDistanceMatrix(optimizationParams);
+    // setCoordinates(resDistanceMatrix.coordinates);
+    setAdjacencyMatrix(resDistanceMatrix.matrix);
+
+    // ROUTE GENERATION
+    const resRoutes = await requestRouteOptimized(resDistanceMatrix.matrix);
+
+    // THE FIRST INDEX IS THE ONE WITH THE LOWEST TIME
+    const orderedCoordinates = resRoutes[0].order.map(
+      (index) => resDistanceMatrix.coordinates[index]
+    );
+    const orderedAddresses = resRoutes[0].order.map(
+      (index) => resDistanceMatrix.formattedAddresses[index]
+    );
+    setCoordinates(orderedCoordinates);
+    setAddresses(orderedAddresses);
+
+    console.log(orderedAddresses);
   };
 
   return (
@@ -43,9 +58,15 @@ export default function Home() {
           <MapInterface
             coordinates={coordinates}
             addresses={optimizationParams.addresses}
+            directionsState={directionsState}
+            setDirectionsState={setDirectionsState}
           ></MapInterface>
         ) : (
-          <MapInterface></MapInterface>
+          // <MapInterface
+          //   directionsState={directionsState}
+          //   setDirectionsState={setDirectionsState}
+          // ></MapInterface>
+          <Fragment></Fragment>
         )}
 
         <EntryForm
