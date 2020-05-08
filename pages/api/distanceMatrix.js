@@ -10,12 +10,6 @@ const geocoderOptions = {
 const geocoder = NodeGeoCoder(geocoderOptions);
 
 distance.key(googleMapsApiKey);
-const places = [
-  "55.930,-3.118",
-  "51.482578,-0.007659",
-  "59.329323,18.068581",
-  "50.087,14.421",
-];
 
 // SAMPLE RESPONSE DATA
 const responseData = {
@@ -228,52 +222,47 @@ const responseData = {
   status: "OK",
 };
 export default async (req, res) => {
-  console.log(req.body);
-  //   distance.matrix(places, places, (err, responseData) => {
-  //     if (!err) console.log(err);
+  const places = req.body.addresses;
+  distance.matrix(places, places, async (err, responseData) => {
+    if (!err) console.log(err);
 
-  //     res.statusCode = 200;
-  //     res.json(responseData);
-  //   });
+    const geoCoding = async (addresses) => {
+      const res = await geocoder.batchGeocode(addresses);
+      return res;
+    };
+    const { addresses } = req.body;
+    const geoCodes = await geoCoding(addresses);
 
-  const geoCoding = async (addresses) => {
-    const res = await geocoder.batchGeocode(addresses);
-    return res;
-  };
-  const { addresses } = req.body;
-  const geoCodes = await geoCoding(addresses);
+    // PARSING THE COORDINATE PAIR
+    const coordinates = geoCodes.map((geoCode) => {
+      const { latitude, longitude } = geoCode.value[0];
+      return { latitude, longitude };
+    });
+    const formattedAddresses = geoCodes.map(
+      (geoCode) => geoCode.value[0].formattedAddress
+    );
+    const googlePlaceId = geoCodes.map(
+      (geoCode) => geoCode.value[0].extra.googlePlaceId
+    );
 
-  // PARSING THE COORDINATE PAIR
-  const coordinates = geoCodes.map((geoCode) => {
-    const { latitude, longitude } = geoCode.value[0];
-    return { latitude, longitude };
-  });
-  const formattedAddresses = geoCodes.map(
-    (geoCode) => geoCode.value[0].formattedAddress
-  );
-  const googlePlaceId = geoCodes.map(
-    (geoCode) => geoCode.value[0].extra.googlePlaceId
-  );
-
-  // CONVERSION OF RESPONSE DATA TO ADJACENCY MATRIX
-  // 2D Loop Origin x Destination Matrix
-  // WHERE EACH CELL WILL CONTAIN ARRAY OF SIZE 2: [distance, time]
-  const matrix = responseData.rows.map((origin) => {
-    const travelData = origin.elements.map((travelDatum) => {
-      return [
-        {
+    // CONVERSION OF RESPONSE DATA TO ADJACENCY MATRIX
+    // 2D Loop Origin x Destination Matrix
+    // WHERE EACH CELL WILL CONTAIN ARRAY OF SIZE 2: [distance, time]
+    const matrix = responseData.rows.map((origin) => {
+      const travelData = origin.elements.map((travelDatum) => {
+        return {
           distance: travelDatum.distance.value,
           time: travelDatum.duration.value,
-        },
-      ];
+        };
+      });
+      return travelData;
     });
-    return travelData;
-  });
-  res.statusCode = 200;
-  res.json({
-    coordinates,
-    formattedAddresses,
-    googlePlaceId,
-    matrix,
+    res.statusCode = 200;
+    res.json({
+      coordinates,
+      formattedAddresses,
+      googlePlaceId,
+      matrix,
+    });
   });
 };
