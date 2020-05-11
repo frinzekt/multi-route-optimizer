@@ -15,10 +15,12 @@
     "dotenv-webpack": "^1.7.0",
     "google-distance-matrix": "^1.1.1",
     "lodash": "^4.17.15",
+    "moment": "^2.25.3",
     "next": "9.3.6",
     "node-geocoder": "^3.27.0",
     "react": "16.13.1",
     "react-dom": "16.13.1",
+    "react-moment": "^0.9.7",
     "reactstrap": "^8.4.1"
   }
 }
