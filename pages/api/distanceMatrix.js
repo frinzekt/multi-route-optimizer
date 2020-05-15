@@ -248,12 +248,14 @@ export default async (req, res) => {
     // CONVERSION OF RESPONSE DATA TO ADJACENCY MATRIX
     // 2D Loop Origin x Destination Matrix
     // WHERE EACH CELL WILL CONTAIN ARRAY OF SIZE 2: [distance, time]
+    console.log(responseData);
     const matrix = responseData.rows.map((origin) => {
       const travelData = origin.elements.map((travelDatum) => {
-        return {
+        const weight = {
           distance: travelDatum.distance.value,
           time: travelDatum.duration.value,
         };
+        return weight;
       });
       return travelData;
     });

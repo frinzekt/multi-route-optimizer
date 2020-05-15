@@ -2,6 +2,7 @@ import Head from "next/head";
 import App, { AppProps } from "next/app";
 import { Fragment, useState, useEffect } from "react";
 import { Container, Row, Col } from "reactstrap";
+import moment from "moment";
 
 import MapInterface from "../components/maps/MapInterface";
 import EntryForm from "../components/maps/EntryForm";
@@ -26,37 +27,48 @@ export default function Home() {
     }
     setOptimizationParams({ ...optimizationParams, [id]: value });
   };
+  const handleChangeTimeOptimizationParams = (e) => {
+    console.log(e);
+    setOptimizationParams({ ...optimizationParams, ["startTime"]: e });
+    console.log(optimizationParams);
+  };
   const handleCheckOptimizationParams = (e) => {
     const { id, checked } = e.target;
     setOptimizationParams({ ...optimizationParams, [id]: checked });
   };
   const handleSubmitOptimizationParams = async (e) => {
-    e.preventDefault();
-    // UPDATE GEOLOCATIONS AND DISTANCE MATRIX
-    const resDistanceMatrix = await requestDistanceMatrix(optimizationParams);
-    // setCoordinates(resDistanceMatrix.coordinates);
-    setAdjacencyMatrix(resDistanceMatrix.matrix);
+    if (typeof optimizationParams.startTime === "undefined") {
+      optimizationParams.startTime = moment().startOf("day");
+      setOptimizationParams({ ...optimizationParams }); // UPDATE STATE
+    }
 
-    // ROUTE GENERATION
-    console.log(optimizationParams);
-    const resRoutes = await requestRouteOptimized(
-      resDistanceMatrix.matrix,
-      optimizationParams.isEndAtStart
-    );
+    // RESTRICT API CALLS ON VALID NUMBER OF ADDRESS
+    if (optimizationParams.addresses) {
+      e.preventDefault();
+      // UPDATE GEOLOCATIONS AND DISTANCE MATRIX
+      const resDistanceMatrix = await requestDistanceMatrix(optimizationParams);
+      // setCoordinates(resDistanceMatrix.coordinates);
+      setAdjacencyMatrix(resDistanceMatrix.matrix);
 
-    // THE FIRST INDEX IS THE ONE WITH THE LOWEST TIME
-    const orderedCoordinates = resRoutes[0].order.map(
-      (index) => resDistanceMatrix.coordinates[index]
-    );
-    const orderedAddresses = resRoutes[0].order.map(
-      (index) => resDistanceMatrix.formattedAddresses[index]
-    );
-    const orderedWeight = resRoutes[0].weight;
-    setCoordinates(orderedCoordinates);
-    setAddresses(orderedAddresses);
-    setWeight(orderedWeight);
+      // ROUTE GENERATION
+      console.log(optimizationParams);
+      const resRoutes = await requestRouteOptimized(
+        resDistanceMatrix.matrix,
+        optimizationParams.isEndAtStart
+      );
 
-    console.log(orderedAddresses);
+      // THE FIRST INDEX IS THE ONE WITH THE LOWEST TIME
+      const orderedCoordinates = resRoutes[0].order.map(
+        (index) => resDistanceMatrix.coordinates[index]
+      );
+      const orderedAddresses = resRoutes[0].order.map(
+        (index) => resDistanceMatrix.formattedAddresses[index]
+      );
+      const orderedWeight = resRoutes[0].weight;
+      setCoordinates(orderedCoordinates);
+      setAddresses(orderedAddresses);
+      setWeight(orderedWeight);
+    }
   };
 
   return (
@@ -69,13 +81,10 @@ export default function Home() {
             weight={weight}
             directionsState={directionsState}
             setDirectionsState={setDirectionsState}
-            isEndAtStart={optimizationParams.endAtStart}
+            isEndAtStart={optimizationParams.isEndAtStart}
+            startTime={optimizationParams.startTime}
           ></MapInterface>
         ) : (
-          // <MapInterface
-          //   directionsState={directionsState}
-          //   setDirectionsState={setDirectionsState}
-          // ></MapInterface>
           <Fragment></Fragment>
         )}
 
@@ -83,6 +92,7 @@ export default function Home() {
           handleChange={handleChangeOptimizationParams}
           handleSubmit={handleSubmitOptimizationParams}
           handleCheck={handleCheckOptimizationParams}
+          handleChangeTime={handleChangeTimeOptimizationParams}
           formattedAddress={addresses}
         ></EntryForm>
       </Container>
