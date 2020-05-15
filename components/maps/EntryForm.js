@@ -1,4 +1,7 @@
 import React from "react";
+import "rc-time-picker/assets/index.css";
+import moment from "moment";
+import TimePicker from "rc-time-picker";
 import {
   Card,
   CardBody,
@@ -20,6 +23,7 @@ const EntryForm = ({
   handleChange,
   handleCheck,
   handleSubmit,
+  handleChangeTime,
   formattedAddress = [""],
 }) => {
   return (
@@ -57,7 +61,6 @@ const EntryForm = ({
                       disabled
                     />
                   </FormGroup>
-                  <Button onClick={handleSubmit}>Optimize</Button>
                 </Col>
                 <Col
                   xs={{ span: 12, order: 1 }}
@@ -70,14 +73,26 @@ const EntryForm = ({
                     <Label check>
                       <Input
                         type="checkbox"
-                        id="endAtTheStart"
+                        id="isEndAtStart"
                         onChange={handleCheck}
                       ></Input>{" "}
                       End At The Start
                     </Label>
                   </FormGroup>
+                  <FormGroup>
+                    <Label>Pick Starting Time</Label>{" "}
+                    <TimePicker
+                      id="startTime"
+                      showSecond={false}
+                      defaultValue={moment().startOf("day")}
+                      format={"h:mm a"}
+                      use12Hours
+                      onChange={handleChangeTime}
+                    ></TimePicker>
+                  </FormGroup>
                 </Col>
               </Row>
+              <Button onClick={handleSubmit}>Optimize</Button>
             </Form>
           </CardText>
         </CardBody>

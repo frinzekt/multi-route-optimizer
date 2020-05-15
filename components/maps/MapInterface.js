@@ -23,10 +23,18 @@ const MapInterface = ({
   directionsState,
   setDirectionsState,
   isEndAtStart,
+  startTime,
 }) => {
   // STATES
   const [dimension, setDimension] = useState({});
   const [shouldInfoWindowOpen, setShouldInfoWindowOpen] = useState({});
+
+  // PRE COMPUTATION
+  let coordinatesMarker = [...coordinates];
+  if (isEndAtStart) {
+    // remove extra marker coordinate for End At Start
+    coordinatesMarker.pop();
+  }
 
   // HANDLERS
   const handleMarkerClick = (key) => {
@@ -41,48 +49,82 @@ const MapInterface = ({
   const Content = ({ index }) => {
     const sum = (array) => array.reduce((total, current) => total + current);
     const { distanceTravelledBetween, timeElapsedBetween } = weight;
-    const totalDistanceTravelledToANode = sum(
-      distanceTravelledBetween.slice(index)
-    );
-    const totalTimeElapsedToANode = sum(timeElapsedBetween.slice(index));
-    console.log(index);
+
+    // USED TO DISPLAY OR NOT DISPLAY FINAL DESTINATION AS START
+    const length = distanceTravelledBetween.length;
+    if (isEndAtStart) {
+      index = length - 1;
+    }
+
+    //CANNOT BE CALCULATED FOR 0th index
+    let totalDistanceTravelledToANode = 0;
+    let totalTimeElapsedToANode = 0;
+    if (index > 0) {
+      totalDistanceTravelledToANode = sum(
+        distanceTravelledBetween.slice(0, index)
+      );
+      totalTimeElapsedToANode = sum(timeElapsedBetween.slice(0, index));
+    }
+
     return (
       <div>
+        {index == 0 ? (
+          // DISPLAY FOR STARTING POINT
+          <p>
+            <strong>This is the Starting Point</strong>
+          </p>
+        ) : (
+          // DISPLAY FOR STARTING AND ENDING POINT
+          index == length - 1 &&
+          isEndAtStart && (
+            <p>
+              <strong>This is the Starting Point</strong>
+              <strong>Details below are for Returning To Start Details</strong>
+            </p>
+          )
+        )}
         <p>Address:{addresses[index]}</p>
         {/* ONLY DISPLAY AFTER THIS FOR ARRIVAL TIMES */}
-        {index > 0 && (
-          <Fragment>
-            <p>
-              Total Distance Travelled:
-              {totalDistanceTravelledToANode}m
-            </p>
-            <p>
-              Total Time Elapsed:
-              {moment()
-                .startOf("day")
-                .seconds(totalTimeElapsedToANode)
-                .format("H:mm:ss")}
-            </p>
-            <p>
-              Estimated Time of Arrival:
-              {moment()
-                .startOf("day")
-                .seconds(totalTimeElapsedToANode)
-                .format("H:mm:ss")}
-            </p>
-            <p>
-              Distance Travelled From Previous Node:
-              {distanceTravelledBetween[index]}
-            </p>
-            <p>
-              Time Elapsed From Previous Node:{" "}
-              {moment()
-                .startOf("day")
-                .seconds(timeElapsedBetween[index])
-                .format("H:mm:ss")}
-            </p>
-          </Fragment>
+        {0 < index && (
+          <table>
+            <tr>
+              <td>Total Distance Travelled:</td>
+              <td>{totalDistanceTravelledToANode}m</td>
+            </tr>
+            <tr>
+              <td>Total Time Elapsed:</td>
+              <td>
+                {moment()
+                  .startOf("day")
+                  .seconds(totalTimeElapsedToANode)
+                  .format("H:mm:ss")}
+              </td>
+            </tr>
+            <tr>
+              <td>Estimated Time of Arrival:</td>
+              <td>
+                {startTime
+                  .add(totalTimeElapsedToANode, "seconds")
+                  .format("LTS")}
+              </td>
+            </tr>
+            <br />
+            <tr>
+              <td>Distance Travelled From Previous Node:</td>
+              <td>{distanceTravelledBetween[index - 1]}m</td>
+            </tr>
+            <tr>
+              <td>Time Elapsed From Previous Node: </td>
+              <td>
+                {moment()
+                  .startOf("day")
+                  .seconds(timeElapsedBetween[index - 1])
+                  .format("H:mm:ss")}
+              </td>
+            </tr>
+          </table>
         )}
+        <style jsx>{"table td:nth-child(2) { font-weight: bold;}"}</style>
       </div>
     );
   };
@@ -115,12 +157,12 @@ const MapInterface = ({
             ),
           }}
         >
-          {coordinates.map((coordinate, i) => {
+          {coordinatesMarker.map((coordinate, i) => {
             return (
               <Fragment key={i}>
                 <Marker
                   animation="DROP"
-                  label={(i + 1).toString()}
+                  label={{ text: (i + 1).toString(), color: "white" }}
                   title={(i + 1).toString()}
                   position={{
                     lat: parseFloat(coordinate.latitude),
@@ -146,7 +188,6 @@ const MapInterface = ({
             directionsState={directionsState}
             setDirectionsState={setDirectionsState}
             places={coordinates}
-            isEndAtStart={isEndAtStart}
           ></MapDirectionsRenderer>
         </GoogleMap>
       </LoadScript>
