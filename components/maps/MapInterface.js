@@ -49,11 +49,14 @@ const MapInterface = ({
   const Content = ({ index }) => {
     const sum = (array) => array.reduce((total, current) => total + current);
     const { distanceTravelledBetween, timeElapsedBetween } = weight;
+    const address = addresses[index];
+    const startTimeReplicate = startTime.clone();
 
     // USED TO DISPLAY OR NOT DISPLAY FINAL DESTINATION AS START
     const length = distanceTravelledBetween.length;
-    if (isEndAtStart) {
-      index = length - 1;
+    console.log(distanceTravelledBetween);
+    if (index == 0 && isEndAtStart) {
+      index = length;
     }
 
     //CANNOT BE CALCULATED FOR 0th index
@@ -75,7 +78,7 @@ const MapInterface = ({
           </p>
         ) : (
           // DISPLAY FOR STARTING AND ENDING POINT
-          index == length - 1 &&
+          index == length &&
           isEndAtStart && (
             <p>
               <strong>This is the Starting Point</strong>
@@ -83,7 +86,7 @@ const MapInterface = ({
             </p>
           )
         )}
-        <p>Address:{addresses[index]}</p>
+        <p>Address:{address}</p>
         {/* ONLY DISPLAY AFTER THIS FOR ARRIVAL TIMES */}
         {0 < index && (
           <table>
@@ -103,7 +106,7 @@ const MapInterface = ({
             <tr>
               <td>Estimated Time of Arrival:</td>
               <td>
-                {startTime
+                {startTimeReplicate
                   .add(totalTimeElapsedToANode, "seconds")
                   .format("LTS")}
               </td>
