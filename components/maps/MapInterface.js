@@ -52,7 +52,7 @@ const MapInterface = ({
 
     // USED TO DISPLAY OR NOT DISPLAY FINAL DESTINATION AS START
     const length = distanceTravelledBetween.length;
-    if (isEndAtStart) {
+    if (index == 0 && isEndAtStart) {
       index = length - 1;
     }
 
