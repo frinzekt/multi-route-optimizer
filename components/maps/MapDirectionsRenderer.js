@@ -24,6 +24,7 @@ const MapDirectionsRenderer = ({
       },
       (result, status) => {
         if (status === google.maps.DirectionsStatus.OK) {
+          console.log(result);
           setDirectionsState(result);
         } else {
           console.log(result);
@@ -34,7 +35,16 @@ const MapDirectionsRenderer = ({
 
   return (
     <div>
-      {directionsState && <DirectionsRenderer directions={directionsState} />}
+      {directionsState && (
+        <DirectionsRenderer
+          directions={directionsState}
+          options={{
+            hideRouteList: false,
+            suppressMarkers: true,
+            suppressInfoWindows: true,
+          }}
+        />
+      )}
     </div>
   );
 };

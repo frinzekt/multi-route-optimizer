@@ -2,9 +2,11 @@ import generateRoutes from "../../helper/generateRoute.mjs";
 
 export default async (req, res) => {
   // CHECK IF PARAMS ARE CORRECT
-  console.log(req.body);
   try {
-    const routes = generateRoutes(req.body.adjacencyMatrix, false);
+    const routes = generateRoutes(
+      req.body.adjacencyMatrix,
+      req.body.isEndAtStart
+    );
     console.log(routes);
     res.statusCode = 200;
     res.json(routes);

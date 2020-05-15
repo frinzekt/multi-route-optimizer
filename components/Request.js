@@ -48,10 +48,11 @@ export const requestDistanceMatrix = async (optimizationParams) => {
   }
 };
 
-export const requestRouteOptimized = async (adjacencyMatrix) => {
+export const requestRouteOptimized = async (adjacencyMatrix, isEndAtStart) => {
   try {
     const response = await api(`/api/routeCalculations`, "POST", {
       adjacencyMatrix,
+      isEndAtStart,
     });
     return response.data;
   } catch (err) {

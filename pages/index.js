@@ -2,6 +2,7 @@ import Head from "next/head";
 import App, { AppProps } from "next/app";
 import { Fragment, useState, useEffect } from "react";
 import { Container, Row, Col } from "reactstrap";
+import moment from "moment";
 
 import MapInterface from "../components/maps/MapInterface";
 import EntryForm from "../components/maps/EntryForm";
@@ -13,69 +14,90 @@ import {
 export default function Home() {
   const [optimizationParams, setOptimizationParams] = useState({});
   const [addresses, setAddresses] = useState([]);
+  const [weight, setWeight] = useState([]);
   const [coordinates, setCoordinates] = useState([]);
   const [directionsState, setDirectionsState] = useState([]);
   const [adjacencyMatrix, setAdjacencyMatrix] = useState([]);
   const [routes, setRoutes] = useState([]);
 
   const handleChangeOptimizationParams = (e) => {
-    e.preventDefault();
     let { id, value } = e.target;
     if (id === "addresses") {
       value = value.trim().split("\n");
     }
     setOptimizationParams({ ...optimizationParams, [id]: value });
   };
-  const handleSubmitOptimizationParams = async (e) => {
-    e.preventDefault();
+  const handleChangeTimeOptimizationParams = (e) => {
+    console.log(e);
+    setOptimizationParams({ ...optimizationParams, ["startTime"]: e });
     console.log(optimizationParams);
+  };
+  const handleCheckOptimizationParams = (e) => {
+    const { id, checked } = e.target;
+    setOptimizationParams({ ...optimizationParams, [id]: checked });
+  };
+  const handleSubmitOptimizationParams = async (e) => {
+    if (typeof optimizationParams.startTime === "undefined") {
+      optimizationParams.startTime = moment().startOf("day");
+      setOptimizationParams({ ...optimizationParams }); // UPDATE STATE
+    }
 
-    // UPDATE GEOLOCATIONS AND DISTANCE MATRIX
-    const resDistanceMatrix = await requestDistanceMatrix(optimizationParams);
-    // setCoordinates(resDistanceMatrix.coordinates);
-    setAdjacencyMatrix(resDistanceMatrix.matrix);
+    // RESTRICT API CALLS ON VALID NUMBER OF ADDRESS
+    if (optimizationParams.addresses) {
+      e.preventDefault();
+      // UPDATE GEOLOCATIONS AND DISTANCE MATRIX
+      const resDistanceMatrix = await requestDistanceMatrix(optimizationParams);
+      // setCoordinates(resDistanceMatrix.coordinates);
+      setAdjacencyMatrix(resDistanceMatrix.matrix);
 
-    // ROUTE GENERATION
-    const resRoutes = await requestRouteOptimized(resDistanceMatrix.matrix);
+      // ROUTE GENERATION
+      console.log(optimizationParams);
+      const resRoutes = await requestRouteOptimized(
+        resDistanceMatrix.matrix,
+        optimizationParams.isEndAtStart
+      );
 
-    // THE FIRST INDEX IS THE ONE WITH THE LOWEST TIME
-    const orderedCoordinates = resRoutes[0].order.map(
-      (index) => resDistanceMatrix.coordinates[index]
-    );
-    const orderedAddresses = resRoutes[0].order.map(
-      (index) => resDistanceMatrix.formattedAddresses[index]
-    );
-    setCoordinates(orderedCoordinates);
-    setAddresses(orderedAddresses);
-
-    console.log(orderedAddresses);
+      // THE FIRST INDEX IS THE ONE WITH THE LOWEST TIME
+      const orderedCoordinates = resRoutes[0].order.map(
+        (index) => resDistanceMatrix.coordinates[index]
+      );
+      const orderedAddresses = resRoutes[0].order.map(
+        (index) => resDistanceMatrix.formattedAddresses[index]
+      );
+      const orderedWeight = resRoutes[0].weight;
+      setCoordinates(orderedCoordinates);
+      setAddresses(orderedAddresses);
+      setWeight(orderedWeight);
+    }
   };
 
   return (
-    <Container id="main">
+    <Container id="main" fluid={true}>
       <Container fluid={true} id="mapContainer">
         {coordinates.length ? (
           <MapInterface
             coordinates={coordinates}
-            addresses={optimizationParams.addresses}
+            addresses={addresses}
+            weight={weight}
             directionsState={directionsState}
             setDirectionsState={setDirectionsState}
+            isEndAtStart={optimizationParams.isEndAtStart}
+            startTime={optimizationParams.startTime}
           ></MapInterface>
         ) : (
-          // <MapInterface
-          //   directionsState={directionsState}
-          //   setDirectionsState={setDirectionsState}
-          // ></MapInterface>
           <Fragment></Fragment>
         )}
 
         <EntryForm
           handleChange={handleChangeOptimizationParams}
           handleSubmit={handleSubmitOptimizationParams}
+          handleCheck={handleCheckOptimizationParams}
+          handleChangeTime={handleChangeTimeOptimizationParams}
+          formattedAddress={addresses}
         ></EntryForm>
       </Container>
       <style jsx global>{`
-        .container#main {
+        .container-fluid#main {
           min-height: 100vh;
           padding: 0 0.5rem;
           display: flex;
@@ -148,22 +170,9 @@ export default function Home() {
           transition: color 0.15s ease, border-color 0.15s ease;
         }
 
-        .card:hover,
-        .card:focus,
-        .card:active {
-          color: #0070f3;
-          border-color: #0070f3;
-        }
-
         .card h3 {
           margin: 0 0 1rem 0;
           font-size: 1.5rem;
-        }
-
-        .card p {
-          margin: 0;
-          font-size: 1.25rem;
-          line-height: 1.5;
         }
 
         .logo {
