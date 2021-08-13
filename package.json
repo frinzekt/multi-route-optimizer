@@ -16,7 +16,7 @@
     "google-distance-matrix": "^1.1.1",
     "lodash": "^4.17.15",
     "moment": "^2.25.3",
-    "next": "9.3.6",
+    "next": "11.1.0",
     "node-geocoder": "^3.27.0",
     "rc-time-picker": "^3.7.3",
     "react": "16.13.1",
